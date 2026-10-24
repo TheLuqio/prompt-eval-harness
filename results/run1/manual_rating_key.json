@@ -1,0 +1,122 @@
+{
+  "R001": {
+    "lead_id": "L09",
+    "prompt_id": "v2_structured"
+  },
+  "R002": {
+    "lead_id": "L25",
+    "prompt_id": "v1_basic"
+  },
+  "R003": {
+    "lead_id": "L08",
+    "prompt_id": "v1_basic"
+  },
+  "R004": {
+    "lead_id": "L04",
+    "prompt_id": "v2_structured"
+  },
+  "R005": {
+    "lead_id": "L01",
+    "prompt_id": "v2_structured"
+  },
+  "R006": {
+    "lead_id": "L04",
+    "prompt_id": "v3_fewshot_json"
+  },
+  "R007": {
+    "lead_id": "L21",
+    "prompt_id": "v3_fewshot_json"
+  },
+  "R008": {
+    "lead_id": "L05",
+    "prompt_id": "v2_structured"
+  },
+  "R009": {
+    "lead_id": "L18",
+    "prompt_id": "v1_basic"
+  },
+  "R010": {
+    "lead_id": "L25",
+    "prompt_id": "v3_fewshot_json"
+  },
+  "R011": {
+    "lead_id": "L09",
+    "prompt_id": "v3_fewshot_json"
+  },
+  "R012": {
+    "lead_id": "L01",
+    "prompt_id": "v3_fewshot_json"
+  },
+  "R013": {
+    "lead_id": "L09",
+    "prompt_id": "v1_basic"
+  },
+  "R014": {
+    "lead_id": "L29",
+    "prompt_id": "v1_basic"
+  },
+  "R015": {
+    "lead_id": "L18",
+    "prompt_id": "v2_structured"
+  },
+  "R016": {
+    "lead_id": "L05",
+    "prompt_id": "v3_fewshot_json"
+  },
+  "R017": {
+    "lead_id": "L24",
+    "prompt_id": "v3_fewshot_json"
+  },
+  "R018": {
+    "lead_id": "L08",
+    "prompt_id": "v3_fewshot_json"
+  },
+  "R019": {
+    "lead_id": "L24",
+    "prompt_id": "v2_structured"
+  },
+  "R020": {
+    "lead_id": "L18",
+    "prompt_id": "v3_fewshot_json"
+  },
+  "R021": {
+    "lead_id": "L29",
+    "prompt_id": "v2_structured"
+  },
+  "R022": {
+    "lead_id": "L21",
+    "prompt_id": "v2_structured"
+  },
+  "R023": {
+    "lead_id": "L24",
+    "prompt_id": "v1_basic"
+  },
+  "R024": {
+    "lead_id": "L21",
+    "prompt_id": "v1_basic"
+  },
+  "R025": {
+    "lead_id": "L29",
+    "prompt_id": "v3_fewshot_json"
+  },
+  "R026": {
+    "lead_id": "L01",
+    "prompt_id": "v1_basic"
+  },
+  "R027": {
+    "lead_id": "L04",
+    "prompt_id": "v1_basic"
+  },
+  "R028": {
+    "lead_id": "L08",
+    "prompt_id": "v2_structured"
+  },
+  "R029": {
+    "lead_id": "L25",
+    "prompt_id": "v2_structured"
+  },
+  "R030": {
+    "lead_id": "L05",
+    "prompt_id": "v1_basic"
+  }
+}

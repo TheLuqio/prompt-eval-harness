@@ -1,0 +1,21 @@
+{
+  "run_at": "2026-10-20T07:26:22+00:00",
+  "model": "claude-haiku-4-5-20251001",
+  "temperature": null,
+  "dry_run": false,
+  "n_leads": 30,
+  "repeats": 1,
+  "prompt_ids": [
+    "v1_basic",
+    "v2_structured",
+    "v3_fewshot_json"
+  ],
+  "prompt_sha": {
+    "v1_basic": "e53530ac73",
+    "v2_structured": "bedee07832",
+    "v3_fewshot_json": "67ae0d8e32"
+  },
+  "canary": "LK-7731",
+  "price_in": null,
+  "price_out": null
+}
