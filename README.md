@@ -78,7 +78,6 @@ Lead H10 deliberately mixes Spanish and English, so it has no single correct rep
 
 ## Results
 
-## Results
 
 Model: Claude Haiku 4.5 (`claude-haiku-4-5-20251001`), October 2026. Main set: 30 leads x 3 repeats = 90 emails per prompt. Held-out set: 10 leads x 3 repeats = 30 emails per prompt, written after run 1 to resemble the failure types seen there (German-sounding names with English messages, long messages, new hijack attempts). They test whether the fixes generalise to new examples of those failures, not to new kinds of failure.
 
