@@ -2,7 +2,7 @@
 
 A small, dependency-light tool for comparing prompt versions on a fixed test set, instead of judging them by feel.
 
-The task under test is the AI follow-up email from my lead-capture automation (LeadKit): given a new lead's name, company and message, write a short, personalised reply that proposes a call. The test set includes the awkward cases a real inbox produces: one-line messages, rambling messages, typos and ALL CAPS, German leads, and **prompt-injection attempts hidden inside the lead's message**.
+The task under test is the AI follow-up email from my lead-capture automation (LeadKit): given a new lead's name, company and message, write a short, personalised reply that proposes a call. LeadKit is a Make workflow that logs each new lead to Google Sheets and sends an AI-written follow-up email. The test set includes the awkward cases a real inbox produces: one-line messages, rambling messages, typos and ALL CAPS, German leads, and **prompt-injection attempts hidden inside the lead's message**.
 
 ## What it does
 
@@ -41,22 +41,36 @@ An email passes only if every applicable check passes.
 
 ## Run it
 
-```bash
-python -m venv .venv && source .venv/bin/activate
+Windows (PowerShell):
+
+```powershell
+python -m venv .venv
+.venv\Scripts\Activate.ps1
 pip install -r requirements.txt -r requirements-dev.txt
 python -m pytest                         # 38 tests, no API key needed
 
 python -m prompt_eval run --dry-run      # offline, FAKE model, only to see the pipeline work
 
-export ANTHROPIC_API_KEY=...             # your own key; never commit it
+$env:ANTHROPIC_API_KEY = "your-key"      # your own key; never commit it
 python -m prompt_eval run                # real run, writes results/
 python -m prompt_eval run --repeats 3    # repeat each call to see run-to-run variability
-python -m prompt_eval run --price-in <USD per 1M input tokens> --price-out <USD per 1M output tokens>
 ```
+
+macOS / Linux:
+
+```bash
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt -r requirements-dev.txt
+python -m pytest
+export ANTHROPIC_API_KEY=...             # your own key; never commit it
+python -m prompt_eval run --repeats 3
+```
+
+Optional: `--price-in <USD per 1M input tokens> --price-out <USD per 1M output tokens>` adds estimated cost per email to the report (see Anthropic's pricing page for current rates).
 
 Then open `results/manual_rating_sheet.xlsx`, rate each email 1-5 in the yellow column, save it as .xlsx, and rebuild the report:
 
-```bash
+```
 python -m prompt_eval report
 ```
 
@@ -68,9 +82,9 @@ Dry-run output goes to `results/dry_run/` and its report is stamped as synthetic
 
 ## Held-out leads
 
-`data/leads_heldout.json` holds 10 leads that were not used when v4 was designed (German-sounding names with English messages, a long message, new kinds of hijack attempts). v4 was written after looking at run-1 failures on the main set, so its score there is optimistic. The held-out run is the fair test:
+`data/leads_heldout.json` holds 10 leads that were not used when v4 was designed (German-sounding names with English messages, a long message, new kinds of hijack attempts). v4 was written after looking at run-1 failures on the main set, so its score there is optimistic. The held-out run is the fairer test:
 
-```bash
+```
 python -m prompt_eval run --leads data/leads_heldout.json --repeats 3 --out results/heldout
 ```
 
@@ -78,6 +92,7 @@ Lead H10 deliberately mixes Spanish and English, so it has no single correct rep
 
 ## Results
 
+In short: structure and worked examples made the emails reliable, and the targeted v4 fixes did not clearly beat v3.
 
 Model: Claude Haiku 4.5 (`claude-haiku-4-5-20251001`), October 2026. Main set: 30 leads x 3 repeats = 90 emails per prompt. Held-out set: 10 leads x 3 repeats = 30 emails per prompt, written after run 1 to resemble the failure types seen there (German-sounding names with English messages, long messages, new hijack attempts). They test whether the fixes generalise to new examples of those failures, not to new kinds of failure.
 
@@ -97,6 +112,8 @@ Findings:
 5. v4 (targeted fixes after run 1: language from message text only, hard word cap, stricter JSON, two more examples) matched v3 within noise: 99% vs 97% on the main set (two emails), 100% vs 90% on the held-out set (all from one lead, H03, where v3 never named the company), blind ratings 4.0 vs 4.1. It costs about 53% more input tokens.
 
 Caveats: leads are synthetic, one model, one rater with 10 ratings per prompt. The checks were revised after run 1 (the call check was widened, one ambiguous lead's language label was removed) and every run was re-scored with the final rules. v4 was designed after seeing run-1 failures, so its main-set score is optimistic.
+
+Raw outputs and reports: `results/run1` (first run, 3 prompts), `results/run2` (main set, 4 prompts), `results/heldout` (10 fresh leads, 4 prompts).
 
 ## Design notes and limits
 
