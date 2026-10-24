@@ -26,7 +26,7 @@ Pass rate = share of emails that pass every applicable automatic check.
 | mentions_detail | 100% | 93% | 100% |
 | no_forbidden | 97% | 100% | 100% |
 | no_placeholders | 100% | 100% | 100% |
-| proposes_call | 97% | 93% | 100% |
+| proposes_call | 100% | 97% | 100% |
 | signs_off | 93% | 100% | 100% |
 
 ## Pass rate by lead type
