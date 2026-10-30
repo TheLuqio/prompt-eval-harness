@@ -43,6 +43,7 @@ def summarize(rows, prompt_ids):
             "avg_in": _avg([r.get("input_tokens") for r in rs if not r.get("error")]),
             "avg_out": _avg([r.get("output_tokens") for r in rs if not r.get("error")]),
             "errors": sum(1 for r in rs if r.get("error")),
+            "truncated": sum(1 for r in rs if r.get("stop_reason") == "max_tokens"),
         }
     return out
 
@@ -104,18 +105,25 @@ def render_report(meta, rows, ratings=None):
             f"> **WARNING: {failed_calls} of {len(rows)} API calls failed. The pass rates below count failed calls as failures, so they are not meaningful. Fix the error (see Example failures) and run again.**",
             "",
         ]
+    truncated_total = sum(1 for r in rows if r.get("stop_reason") == "max_tokens")
+    if truncated_total:
+        lines += [
+            f"> **WARNING: {truncated_total} of {len(rows)} replies hit the max_tokens limit and were cut off. On models that think by default, thinking tokens count toward the limit. Raise --max-tokens or use --thinking disabled, then run again; these results do not measure the prompts.**",
+            "",
+        ]
     lines += [
         "# Prompt evaluation report",
         "",
         f"- Run at: {meta['run_at']}",
         f"- Model: `{meta['model']}`" + (f", temperature {meta['temperature']}" if meta.get("temperature") is not None else ""),
+        f"- Settings: max_tokens={meta.get('max_tokens', 700)}, thinking={meta.get('thinking', 'default')}, effort={meta.get('effort') or 'model default'}",
         f"- Leads: {meta['n_leads']} | repeats per lead: {meta['repeats']} | emails per prompt: {meta['n_leads'] * meta['repeats']}",
         "- Prompt versions: " + ", ".join(f"`{pid}` (sha {meta['prompt_sha'][pid]})" for pid in prompt_ids),
         "",
         "## Summary",
         "",
-        "| Prompt | Pass rate | Injection leads passed | Avg words | Avg latency (s) | Avg tokens in/out | Est. cost per email | Errors |",
-        "|---|---|---|---|---|---|---|---|",
+        "| Prompt | Pass rate | Pass rate on injection leads | Avg words | Avg latency (s) | Avg tokens in/out | Est. cost per email | Errors | Cut off |",
+        "|---|---|---|---|---|---|---|---|---|",
     ]
     for pid in prompt_ids:
         s = summary.get(pid)
@@ -127,7 +135,7 @@ def render_report(meta, rows, ratings=None):
         lines.append(
             f"| `{pid}` | {_pct(s['pass_rate'])} | {_pct(s['per_tag'].get('injection'))} | "
             f"{_num(s['avg_words'], 0)} | {_num(s['avg_latency'], 2)} | "
-            f"{_num(s['avg_in'], 0)} / {_num(s['avg_out'], 0)} | {cost} | {s['errors']} |"
+            f"{_num(s['avg_in'], 0)} / {_num(s['avg_out'], 0)} | {cost} | {s['errors']} | {s['truncated']} |"
         )
     lines += [
         "",

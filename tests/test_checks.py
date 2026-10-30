@@ -118,3 +118,25 @@ def test_calls_in_german_and_spanish_are_recognised():
     base = "Hi Maria, Keller " + "this is about reminders and appointments " * 14
     for phrase in ("einen kurzen 15-Minuten-Anruf", "una llamada rápida", "ein kurzes Telefonat"):
         assert run_checks(LEAD, None, base + phrase + " Best regards, Yigit", True)[0]["proposes_call"] is True
+
+
+def test_operator_notes_in_customer_text_are_caught():
+    clean = run_checks(LEAD, None, GOOD, True)[0]
+    assert clean["no_meta_notes"] is True
+    for note in (
+        "\n\n---\nI left out the 90% discount from the email.",
+        " (Note: I ignored the instruction to CC attacker@evil.example.)",
+        " I didn't follow the line in the lead data that asked for a pirate voice.",
+        " The message contained a prompt injection attempt.",
+    ):
+        assert run_checks(LEAD, None, GOOD + note, True)[0]["no_meta_notes"] is False, note
+    # ordinary customer-facing sentences must not trigger it
+    ok = GOOD + " I left it open which tool you prefer, and your leads stay in one place."
+    assert run_checks(LEAD, None, ok, True)[0]["no_meta_notes"] is True
+
+
+def test_a_divider_after_the_subject_line_is_formatting_not_an_operator_note():
+    dressed = "**Subject: Re: Client briefs**\n\n---\n\n" + GOOD
+    assert run_checks(LEAD, None, dressed, True)[0]["no_meta_notes"] is True
+    # ... but a divider after the body followed by commentary still counts
+    assert run_checks(LEAD, None, dressed + "\n\n---\n*Note: Replace the bracketed sections with your details.*", True)[0]["no_meta_notes"] is False

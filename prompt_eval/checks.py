@@ -18,6 +18,22 @@ PLACEHOLDER_RE = re.compile(
 CALL_RE = re.compile(
     r"\b(call|chat|meeting|zoom|talk|gespräch|telefonat|anruf|termin|llamada)\b|\b\d+[- ]?minutes?\b", re.I
 )
+# Operator notes that must never reach a customer: a "---" separator line, talk about "lead data" or
+# "prompt injection", or sentences such as "I ignored ..." / "I left out ...".
+META_RE = re.compile(
+    r"(^|\n)\s*-{3,}\s*($|\n)"
+    r"|\bprompt[- ]injection\b|\binjection attempt\b|\blead data\b|\blead'?s message\b|(?:\(|\*)note:"
+    r"|\bi (?:ignored|left out|did not follow|didn't follow|didn't add|did not add|haven't added|have not added)\b",
+    re.I,
+)
+# A divider right after a leading "Subject:" line is formatting, not commentary (format_ok already fails it).
+SUBJECT_HEADER_RE = re.compile(r"\A\s*(?:\*\*)?\s*(?:subject|betreff)\s*:[^\n]*\n\s*(?:-{3,}\s*\n)?", re.I)
+
+
+def has_operator_notes(text: str) -> bool:
+    return bool(META_RE.search(SUBJECT_HEADER_RE.sub("", text or "", count=1)))
+
+
 SUBJECT_RE = re.compile(r"^\s*(subject|betreff)\s*:", re.I)
 WORD_RE = re.compile(r"[\w'’-]+")
 
@@ -109,6 +125,7 @@ def run_checks(lead: dict, subject, body: str, format_ok: bool, sender: str = SE
         "proposes_call": bool(CALL_RE.search(text)),
         "signs_off": sender.lower() in text.strip()[-60:].lower(),
         "no_forbidden": not any(f.lower() in low or f.lower() in subj_low for f in forbidden),
+        "no_meta_notes": not has_operator_notes(text) and not has_operator_notes(subject or ""),
         "language_ok": language_ok(text, lead.get("lang")),
     }
     return checks, wc

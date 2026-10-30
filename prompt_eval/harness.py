@@ -27,23 +27,35 @@ DEFAULT_MODEL = "claude-haiku-4-5-20251001"
 
 
 # ---------------------------------------------------------------- model calls
-def call_model(client, model, prompt: PromptVersion, lead: dict, temperature):
+def call_model(client, model, prompt: PromptVersion, lead: dict, temperature, max_tokens=700, thinking=None, effort=None):
+    """One API call. Returns (text, latency_s, input_tokens, output_tokens, stop_reason).
+
+    Newer models (e.g. Haiku 5.5) think by default and thinking tokens count toward max_tokens,
+    so a small cap can cut the reply off. stop_reason == "max_tokens" reveals that.
+    """
     kwargs = {
         "model": model,
-        "max_tokens": 700,
+        "max_tokens": max_tokens,
         "messages": [{"role": "user", "content": prompt.render_user(lead)}],
     }
     if prompt.system:
         kwargs["system"] = prompt.system
+    extra = {}
     if temperature is not None:
         # Current SDK versions have no typed temperature argument, and some newer models may
         # reject it. It is therefore opt-in and sent via extra_body.
-        kwargs["extra_body"] = {"temperature": temperature}
+        extra["temperature"] = temperature
+    if thinking == "disabled":
+        extra["thinking"] = {"type": "disabled"}
+    if effort:
+        extra["output_config"] = {"effort": effort}
+    if extra:
+        kwargs["extra_body"] = extra
     start = time.perf_counter()
     resp = client.messages.create(**kwargs)
     latency = time.perf_counter() - start
     text = "".join(b.text for b in resp.content if getattr(b, "type", None) == "text")
-    return text, latency, resp.usage.input_tokens, resp.usage.output_tokens
+    return text, latency, resp.usage.input_tokens, resp.usage.output_tokens, getattr(resp, "stop_reason", None)
 
 
 # ------------------------------------------------------------ offline mock model
@@ -105,7 +117,7 @@ def mock_complete(prompt: PromptVersion, lead: dict, repeat: int):
     in_tokens = int((len(prompt.system or "") + len(prompt.render_user(lead))) / 4)
     out_tokens = int(len(text.split()) * 1.4)
     latency = rng.uniform(0.8, 2.5) + (0.4 if prompt.id == "v3_fewshot_json" else 0)
-    return text, latency, in_tokens, out_tokens
+    return text, latency, in_tokens, out_tokens, "end_turn"
 
 
 # ---------------------------------------------------------------------- running
@@ -125,12 +137,13 @@ def run_one(client, args, prompt, lead, repeat):
         "latency_s": None,
         "input_tokens": None,
         "output_tokens": None,
+        "stop_reason": None,
     }
     try:
         if args.dry_run:
-            raw, latency, tin, tout = mock_complete(prompt, {**lead}, repeat)
+            raw, latency, tin, tout, stop = mock_complete(prompt, {**lead}, repeat)
         else:
-            raw, latency, tin, tout = call_model(client, args.model, prompt, lead, args.temperature)
+            raw, latency, tin, tout, stop = call_model(client, args.model, prompt, lead, args.temperature, args.max_tokens, args.thinking, args.effort)
     except Exception as exc:  # noqa: BLE001 - record any API failure and keep going
         row["error"] = f"{type(exc).__name__}: {str(exc)[:200]}"
         return row
@@ -138,7 +151,7 @@ def run_one(client, args, prompt, lead, repeat):
     checks, words = run_checks(lead, subject, body, format_ok)
     row.update(
         output_raw=raw, subject=subject, body=body, checks=checks, passed=overall_pass(checks),
-        words=words, latency_s=latency, input_tokens=tin, output_tokens=tout,
+        words=words, latency_s=latency, input_tokens=tin, output_tokens=tout, stop_reason=stop,
     )
     return row
 
@@ -239,7 +252,7 @@ def cmd_run(args):
         # One cheap test call first: a bad key, empty credit balance or wrong model name should
         # stop the run immediately instead of producing a report full of silent failures.
         try:
-            call_model(client, args.model, ALL_PROMPTS[prompt_ids[0]], leads[0], args.temperature)
+            call_model(client, args.model, ALL_PROMPTS[prompt_ids[0]], leads[0], args.temperature, args.max_tokens, args.thinking, args.effort)
         except Exception as exc:  # noqa: BLE001
             print(f"Preflight call failed, nothing was run: {type(exc).__name__}: {str(exc)[:300]}", file=sys.stderr)
             print("Check that your API key is valid and not expired, that your account has credit, and that --model is a model your account can use.", file=sys.stderr)
@@ -275,6 +288,9 @@ def cmd_run(args):
         "prompt_ids": prompt_ids,
         "prompt_sha": {p: ALL_PROMPTS[p].sha for p in prompt_ids},
         "canary": CANARY,
+        "max_tokens": args.max_tokens,
+        "thinking": args.thinking,
+        "effort": args.effort,
         "price_in": args.price_in,
         "price_out": args.price_out,
     }
@@ -314,7 +330,7 @@ def cmd_rescore(args):
     leads = {l["id"]: l for l in json.loads(Path(args.leads).read_text(encoding="utf-8"))}
     raw_path = out_dir / "raw_results.jsonl"
     rows = [json.loads(line) for line in raw_path.read_text(encoding="utf-8").splitlines() if line.strip()]
-    changed = 0
+    flipped = touched = 0
     for r in rows:
         if r.get("error"):
             continue
@@ -322,14 +338,16 @@ def cmd_rescore(args):
         subject, body, format_ok, _err = parse_output(r["output_raw"], prompt.output)
         checks, words = run_checks(leads[r["lead_id"]], subject, body, format_ok)
         passed = overall_pass(checks)
-        if passed != r["passed"] or checks != r["checks"]:
-            changed += 1
+        if passed != r["passed"]:
+            flipped += 1
+        if checks != r["checks"]:
+            touched += 1
         r.update(subject=subject, body=body, checks=checks, passed=passed, words=words)
     with open(raw_path, "w", encoding="utf-8") as fh:
         for r in rows:
             fh.write(json.dumps(r, ensure_ascii=False) + "\n")
     write_report(out_dir)
-    print(f"Re-scored {len(rows)} emails; {changed} had a different result. Report rebuilt: {out_dir / 'report.md'}")
+    print(f"Re-scored {len(rows)} emails: {flipped} changed between pass and fail ({touched} had check results added or updated). Report rebuilt: {out_dir / 'report.md'}")
     return 0
 
 
@@ -342,6 +360,11 @@ def main(argv=None):
     run.add_argument("--model", default=DEFAULT_MODEL)
     run.add_argument("--temperature", type=float, default=None,
                      help="optional; omitted by default (newer models may reject it). Use --repeats to measure variability")
+    run.add_argument("--max-tokens", type=int, default=700, help="output cap; thinking tokens count toward it on newer models")
+    run.add_argument("--thinking", choices=["default", "disabled"], default="default",
+                     help="'disabled' turns thinking off (Haiku 5.5 thinks by default); same behaviour as older models")
+    run.add_argument("--effort", choices=["low", "medium", "high", "xhigh", "max"], default=None,
+                     help="optional effort level for models that support it (Haiku 5.5 default: medium)")
     run.add_argument("--repeats", type=int, default=1)
     run.add_argument("--workers", type=int, default=4)
     run.add_argument("--limit", type=int, default=None, help="only the first N leads")

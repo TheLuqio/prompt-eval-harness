@@ -1,0 +1,162 @@
+{
+  "R001": {
+    "lead_id": "L18",
+    "prompt_id": "v3_fewshot_json"
+  },
+  "R002": {
+    "lead_id": "L08",
+    "prompt_id": "v3_fewshot_json"
+  },
+  "R003": {
+    "lead_id": "L29",
+    "prompt_id": "v2_structured"
+  },
+  "R004": {
+    "lead_id": "L04",
+    "prompt_id": "v2_structured"
+  },
+  "R005": {
+    "lead_id": "L09",
+    "prompt_id": "v1_basic"
+  },
+  "R006": {
+    "lead_id": "L18",
+    "prompt_id": "v2_structured"
+  },
+  "R007": {
+    "lead_id": "L21",
+    "prompt_id": "v3_fewshot_json"
+  },
+  "R008": {
+    "lead_id": "L29",
+    "prompt_id": "v1_basic"
+  },
+  "R009": {
+    "lead_id": "L29",
+    "prompt_id": "v3_fewshot_json"
+  },
+  "R010": {
+    "lead_id": "L21",
+    "prompt_id": "v2_structured"
+  },
+  "R011": {
+    "lead_id": "L04",
+    "prompt_id": "v4_targeted"
+  },
+  "R012": {
+    "lead_id": "L04",
+    "prompt_id": "v3_fewshot_json"
+  },
+  "R013": {
+    "lead_id": "L05",
+    "prompt_id": "v2_structured"
+  },
+  "R014": {
+    "lead_id": "L08",
+    "prompt_id": "v1_basic"
+  },
+  "R015": {
+    "lead_id": "L21",
+    "prompt_id": "v4_targeted"
+  },
+  "R016": {
+    "lead_id": "L25",
+    "prompt_id": "v4_targeted"
+  },
+  "R017": {
+    "lead_id": "L01",
+    "prompt_id": "v2_structured"
+  },
+  "R018": {
+    "lead_id": "L09",
+    "prompt_id": "v3_fewshot_json"
+  },
+  "R019": {
+    "lead_id": "L09",
+    "prompt_id": "v4_targeted"
+  },
+  "R020": {
+    "lead_id": "L01",
+    "prompt_id": "v1_basic"
+  },
+  "R021": {
+    "lead_id": "L25",
+    "prompt_id": "v1_basic"
+  },
+  "R022": {
+    "lead_id": "L25",
+    "prompt_id": "v2_structured"
+  },
+  "R023": {
+    "lead_id": "L05",
+    "prompt_id": "v4_targeted"
+  },
+  "R024": {
+    "lead_id": "L24",
+    "prompt_id": "v1_basic"
+  },
+  "R025": {
+    "lead_id": "L08",
+    "prompt_id": "v4_targeted"
+  },
+  "R026": {
+    "lead_id": "L01",
+    "prompt_id": "v4_targeted"
+  },
+  "R027": {
+    "lead_id": "L25",
+    "prompt_id": "v3_fewshot_json"
+  },
+  "R028": {
+    "lead_id": "L01",
+    "prompt_id": "v3_fewshot_json"
+  },
+  "R029": {
+    "lead_id": "L05",
+    "prompt_id": "v3_fewshot_json"
+  },
+  "R030": {
+    "lead_id": "L21",
+    "prompt_id": "v1_basic"
+  },
+  "R031": {
+    "lead_id": "L24",
+    "prompt_id": "v2_structured"
+  },
+  "R032": {
+    "lead_id": "L18",
+    "prompt_id": "v4_targeted"
+  },
+  "R033": {
+    "lead_id": "L09",
+    "prompt_id": "v2_structured"
+  },
+  "R034": {
+    "lead_id": "L08",
+    "prompt_id": "v2_structured"
+  },
+  "R035": {
+    "lead_id": "L29",
+    "prompt_id": "v4_targeted"
+  },
+  "R036": {
+    "lead_id": "L04",
+    "prompt_id": "v1_basic"
+  },
+  "R037": {
+    "lead_id": "L05",
+    "prompt_id": "v1_basic"
+  },
+  "R038": {
+    "lead_id": "L24",
+    "prompt_id": "v3_fewshot_json"
+  },
+  "R039": {
+    "lead_id": "L24",
+    "prompt_id": "v4_targeted"
+  },
+  "R040": {
+    "lead_id": "L18",
+    "prompt_id": "v1_basic"
+  }
+}

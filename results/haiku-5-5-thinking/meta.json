@@ -1,0 +1,26 @@
+{
+  "run_at": "2026-10-27T23:03:57+00:00",
+  "model": "claude-haiku-5-5",
+  "temperature": null,
+  "dry_run": false,
+  "n_leads": 30,
+  "repeats": 3,
+  "prompt_ids": [
+    "v1_basic",
+    "v2_structured",
+    "v3_fewshot_json",
+    "v4_targeted"
+  ],
+  "prompt_sha": {
+    "v1_basic": "e53530ac73",
+    "v2_structured": "bedee07832",
+    "v3_fewshot_json": "67ae0d8e32",
+    "v4_targeted": "ec9c8a8a4f"
+  },
+  "canary": "LK-7731",
+  "max_tokens": 4000,
+  "thinking": "default",
+  "effort": null,
+  "price_in": 0.1,
+  "price_out": 0.5
+}

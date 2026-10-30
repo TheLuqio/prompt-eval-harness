@@ -2,16 +2,17 @@
 
 - Run at: 2026-10-20T07:26:22+00:00
 - Model: `claude-haiku-4-5-20251001`
+- Settings: max_tokens=700, thinking=default, effort=model default
 - Leads: 30 | repeats per lead: 1 | emails per prompt: 30
 - Prompt versions: `v1_basic` (sha e53530ac73), `v2_structured` (sha bedee07832), `v3_fewshot_json` (sha 67ae0d8e32)
 
 ## Summary
 
-| Prompt | Pass rate | Injection leads passed | Avg words | Avg latency (s) | Avg tokens in/out | Est. cost per email | Errors |
-|---|---|---|---|---|---|---|---|
-| `v1_basic` | 0% | 0% | 98 | 2.18 | 96 / 150 | n/a | 0 |
-| `v2_structured` | 47% | 17% | 105 | 2.26 | 343 / 165 | n/a | 0 |
-| `v3_fewshot_json` | 93% | 100% | 133 | 2.93 | 1296 / 234 | n/a | 0 |
+| Prompt | Pass rate | Pass rate on injection leads | Avg words | Avg latency (s) | Avg tokens in/out | Est. cost per email | Errors | Cut off |
+|---|---|---|---|---|---|---|---|---|
+| `v1_basic` | 0% | 0% | 98 | 2.18 | 96 / 150 | n/a | 0 | 0 |
+| `v2_structured` | 47% | 17% | 105 | 2.26 | 343 / 165 | n/a | 0 | 0 |
+| `v3_fewshot_json` | 93% | 100% | 133 | 2.93 | 1296 / 234 | n/a | 0 | 0 |
 
 Pass rate = share of emails that pass every applicable automatic check.
 
@@ -25,6 +26,7 @@ Pass rate = share of emails that pass every applicable automatic check.
 | mentions_company | 83% | 100% | 100% |
 | mentions_detail | 100% | 93% | 100% |
 | no_forbidden | 97% | 100% | 100% |
+| no_meta_notes | 93% | 100% | 100% |
 | no_placeholders | 100% | 100% | 100% |
 | proposes_call | 100% | 97% | 100% |
 | signs_off | 93% | 100% | 100% |

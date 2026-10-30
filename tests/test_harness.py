@@ -114,9 +114,10 @@ class _Usage:
 
 
 class _Resp:
-    def __init__(self, text):
+    def __init__(self, text, stop_reason="end_turn"):
         self.content = [_Block(text)]
         self.usage = _Usage()
+        self.stop_reason = stop_reason
 
 
 class _StubClient:
@@ -137,11 +138,12 @@ def test_call_model_builds_the_request_correctly():
 
     lead = {"name": "A B", "company": "Acme", "message": "Hello"}
     stub = _StubClient()
-    text, latency, tin, tout = call_model(stub, "some-model", ALL_PROMPTS["v1_basic"], lead, None)
-    assert (text, tin, tout) == ("ok", 11, 22) and latency >= 0
+    text, latency, tin, tout, stop = call_model(stub, "some-model", ALL_PROMPTS["v1_basic"], lead, None)
+    assert (text, tin, tout, stop) == ("ok", 11, 22, "end_turn") and latency >= 0
     first = stub.calls[0]
     assert first["model"] == "some-model" and "system" not in first
     assert "temperature" not in first and "extra_body" not in first
+    assert first["max_tokens"] == 700
     assert "Acme" in first["messages"][0]["content"]
 
     call_model(stub, "some-model", ALL_PROMPTS["v2_structured"], lead, 0.0)
@@ -171,3 +173,38 @@ def test_report_warns_loudly_when_calls_failed():
     row = {"lead_id": "L01", "tags": ["normal"], "prompt_id": "v1_basic", "repeat": 0, "error": "AuthenticationError: bad key",
            "checks": {}, "passed": False, "words": None, "latency_s": None, "input_tokens": None, "output_tokens": None}
     assert "1 of 1 API calls failed" in render_report(meta, [row])
+
+
+def test_thinking_effort_and_max_tokens_are_passed_through():
+    from prompt_eval.harness import call_model
+    from prompt_eval.prompts import ALL_PROMPTS
+
+    lead = {"name": "A B", "company": "Acme", "message": "Hello"}
+    stub = _StubClient()
+    call_model(stub, "m", ALL_PROMPTS["v2_structured"], lead, None, max_tokens=4000, thinking="disabled", effort="low")
+    sent = stub.calls[0]
+    assert sent["max_tokens"] == 4000
+    assert sent["extra_body"] == {"thinking": {"type": "disabled"}, "output_config": {"effort": "low"}}
+    assert "temperature" not in sent
+    # "default" thinking must not send anything
+    call_model(stub, "m", ALL_PROMPTS["v2_structured"], lead, None, thinking="default")
+    assert "extra_body" not in stub.calls[1]
+
+
+def test_report_flags_replies_that_were_cut_off():
+    from prompt_eval.report import render_report
+
+    meta = {"run_at": "now", "model": "m", "temperature": None, "n_leads": 1, "repeats": 1, "dry_run": False,
+            "prompt_ids": ["v1_basic"], "prompt_sha": {"v1_basic": "abc"}, "price_in": None, "price_out": None,
+            "max_tokens": 700, "thinking": "default", "effort": None}
+    row = {"lead_id": "L01", "tags": ["normal"], "prompt_id": "v1_basic", "repeat": 0, "error": None,
+           "checks": {"length_ok": False}, "passed": False, "words": 40, "latency_s": 2.0,
+           "input_tokens": 100, "output_tokens": 700, "stop_reason": "max_tokens"}
+    text = render_report(meta, [row])
+    assert "cut off" in text and "| Cut off |" in text
+    assert "max_tokens=700, thinking=default" in text
+
+
+def test_dry_run_report_has_the_cut_off_column(tmp_path):
+    out = _dry_run(tmp_path, "--limit", "3")
+    assert "| Cut off |" in (out / "report.md").read_text(encoding="utf-8")
